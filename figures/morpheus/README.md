@@ -29,8 +29,8 @@ We saved the heatmaps as `.png` and `.pdf` files (shown below)
 
 ### Plate 1 (15 Day)
 
-![Plate 1](https://raw.githubusercontent.com/broadinstitute/2018_04_12_T2D_V2F_Saadat_Broad/master/figures/morpheus/BR00101075_normalized_variable_selected_2019_04_16_Batch1_morpheus.png)
+![Plate 1](https://raw.githubusercontent.com/broadinstitute/2018_04_12_T2D_V2F_Saadat_Broad/master/figures/morpheus/BR00101075_normalized_variable_selected_2019_04_16_Batch1_morpheus.png?token=ABYADBKQF5PANDMRDKGYSSC47LFPE)
 
 ### Plate 2 (15 Day + Iso)
 
-![Plate 2](https://raw.githubusercontent.com/broadinstitute/2018_04_12_T2D_V2F_Saadat_Broad/master/figures/morpheus/BR00101076_normalized_variable_selected_2019_04_16_Batch1_morpheus.png)
+![Plate 2](https://raw.githubusercontent.com/broadinstitute/2018_04_12_T2D_V2F_Saadat_Broad/master/figures/morpheus/BR00101076_normalized_variable_selected_2019_04_16_Batch1_morpheus.png?token=ABYADBLVABHZ6EGHXKJ2FG247LFQK)
