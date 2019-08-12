@@ -184,6 +184,8 @@ full_plot_ready$Metadata_condition_O2 <-
     factor(full_plot_ready$Metadata_condition_O2,
            levels = c("4", "21"))
 
+append_02 <- function(string) paste("O2:", string)
+
 cor_gg <- ggplot(full_plot_ready,
                  aes(x = pearson_cor,
                      fill = null_data)) +
@@ -192,7 +194,8 @@ cor_gg <- ggplot(full_plot_ready,
     xlab("Profile Correlation (Pearson)") +
     theme_bw() +
     facet_grid(Metadata_treatment~Metadata_condition_O2,
-               scales="free_y") +
+               scales="free_y",
+               labeller = labeller(Metadata_condition_O2 = as_labeller(append_02))) +
     scale_fill_manual(name = "",
                       values = c("#FFC107", "#004D40")) +
     theme(axis.text.y = element_text(size = 8),
@@ -200,7 +203,7 @@ cor_gg <- ggplot(full_plot_ready,
           axis.title = element_text(size = 10),
           legend.text = element_text(size = 10),
           strip.text.x = element_text(size = 10),
-          strip.text.y = element_text(size = 6),
+          strip.text.y = element_text(size = 7),
           strip.background = element_rect(colour = "black",
                                           fill = "#fdfff4"))
 
