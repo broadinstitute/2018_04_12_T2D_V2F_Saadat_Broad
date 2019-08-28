@@ -227,8 +227,8 @@ for (fatty_acid in unique(full_plot_ready$Metadata_FFA)) {
     }
 }
 
-    full_plot_group_df = full_plot_ready %>%
-        dplyr::filter(pair_b == 1)
+full_plot_group_df = full_plot_ready %>%
+    dplyr::filter(pair_b == 1)
 
 table(full_plot_group_df$null_data, full_plot_group_df$within_group_cor)
 
