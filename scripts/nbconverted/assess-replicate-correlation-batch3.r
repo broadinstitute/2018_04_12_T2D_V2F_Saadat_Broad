@@ -5,7 +5,7 @@ suppressPackageStartupMessages(library(ggridges))
 
 set.seed(123)
 
-batch_id <- "2019_04_16_Batch1"
+batch_id <- "2019_08_06_Batch3"
 backend_dir <- file.path("..", "..", "backend", batch_id)
 
 profile_files <- list.files(backend_dir,
@@ -21,19 +21,21 @@ profile_cols <- readr::cols(
   Metadata_Plate_Map_Name = readr::col_character(),
   Metadata_well_position = readr::col_character(),
   Metadata_cell_line = readr::col_character(),
-  Metadata_patient = readr::col_character(),
-  Metadata_FFA = readr::col_character(),
-  Metadata_diff_day = readr::col_character()
+  Metadata_condition_O2 = readr::col_character()
 )
 
 profile_df <- purrr::map_df(
     profile_files,
     readr::read_csv,
-    col_types = profile_cols
+    col_types = readr::cols()
 )
 
 dim(profile_df)
 head(profile_df, 2)
+
+# Output Combined Profiles
+file <- file.path("data", paste0("merged_profiles_", batch_id, ".tsv.gz"))
+readr::write_tsv(profile_df, file)
 
 # Separate different cell profiler data
 cp_features <- colnames(profile_df) %>%
@@ -60,6 +62,15 @@ metadata_df <- profile_df %>%
 
 tail(metadata_df)
 
+table(metadata_df$Metadata_diff_day)
+
+table(
+    metadata_df$Metadata_diff_day,
+    metadata_df$Metadata_patient,
+    metadata_df$Metadata_cell_line,
+    metadata_df$Metadata_FFA
+)
+
 # Create a dataframe of variables for each group
 group_id_df <- metadata_df %>%
     dplyr::select(
@@ -73,16 +84,7 @@ group_id_df <- metadata_df %>%
     dplyr::arrange(group_id)
 
 dim(group_id_df)
-tail(group_id_df)
-
-table(group_id_df$Metadata_diff_day)
-
-table(
-    metadata_df$Metadata_diff_day,
-    metadata_df$Metadata_patient,
-    metadata_df$Metadata_cell_line,
-    metadata_df$Metadata_FFA
-)
+head(group_id_df)
 
 cor_df <- profile_df %>%
     dplyr::select(cp_features) %>%
@@ -181,15 +183,7 @@ full_plot_ready <- full_plot_ready %>%
 
 head(full_plot_ready, 2)
 
-# Update Factors for plotting
-full_plot_ready$Metadata_diff_day <-
-    factor(full_plot_ready$Metadata_diff_day,
-           levels = c("0", "1", "2", "3", "7", "10", "14", "15", "15+iso"))
-
-# Update Factors for plotting
-full_plot_ready$Metadata_cell_line <-
-    factor(full_plot_ready$Metadata_cell_line,
-           levels = c("hBAT", "SGBS", "sc", "vc"))
+append_day <- function(string) paste("Day:", string)
 
 for (fatty_acid in unique(full_plot_ready$Metadata_FFA)) {
     full_plot_subset_df <- full_plot_ready %>%
@@ -205,7 +199,8 @@ for (fatty_acid in unique(full_plot_ready$Metadata_FFA)) {
         theme_bw() +
         ggtitle(paste("Fatty Acid Included:", as.logical(as.numeric(fatty_acid)))) +
         facet_grid(Metadata_diff_day~Metadata_cell_line,
-                   scales="free_y") +
+                   scales="free_y",
+                   labeller = labeller(Metadata_diff_day = as_labeller(append_day))) +
         scale_fill_manual(name = "",
                           values = c("#FFC107", "#004D40")) +
         theme(axis.text.y = element_text(size = 8),
@@ -218,7 +213,7 @@ for (fatty_acid in unique(full_plot_ready$Metadata_FFA)) {
     
     print(cor_gg)
     
-    file_base <- file.path("figures", paste0("replicate_correlation_fattyacid_", fatty_acid))
+    file_base <- file.path("figures", paste0(batch_id, "_replicate_correlation_fattyacid_", fatty_acid))
     for (extension in c('.png', '.pdf')) {
         ggsave(cor_gg,
                filename = paste0(file_base, extension),
@@ -288,12 +283,11 @@ final_results_df <- full_plot_ready %>%
 head(final_results_df, 2)
 
 append_ffa <- function(string) paste("FFA:", as.logical(as.numeric(string)))
-append_day <- function(string) paste("Day\n", string)
 
 ks_test_gg <- ggplot(final_results_df) +
     geom_jitter(aes(y = ks_stat,
                     x = as.factor(Metadata_cell_line),
-                    color = Metadata_patient),
+                    color = as.factor(Metadata_patient)),
                 size = 1.25,
                 height = 0,
                 width = 0.2,
@@ -303,9 +297,7 @@ ks_test_gg <- ggplot(final_results_df) +
                                   "#d95f02",
                                   "#7570b3",
                                   "#e7298a",
-                                  "#66a61e",
-                                  "#e6ab02",
-                                  "black")) +
+                                  "#66a61e")) +
     facet_grid(Metadata_FFA~Metadata_diff_day,
                scales = "free_x",
                labeller = labeller(Metadata_FFA = as_labeller(append_ffa),
@@ -323,10 +315,10 @@ ks_test_gg <- ggplot(final_results_df) +
 
 ks_test_gg
 
-file_base <- file.path("figures", "replicate_correlation_kstest")
+file_base <- file.path("figures", paste0("replicate_correlation_kstest", "_", batch_id))
 for (extension in c('.png', '.pdf')) {
     ggsave(ks_test_gg,
            filename = paste0(file_base, extension),
            height = 4,
-           width = 8)
+           width = 6)
 }
