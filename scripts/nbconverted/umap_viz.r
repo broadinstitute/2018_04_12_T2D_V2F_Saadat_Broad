@@ -137,3 +137,27 @@ for(extension in c('.png', '.pdf')) {
                        base_width = 200,
                        unit = "mm")
 }
+
+cp_umap_df$Day <- dplyr::recode(cp_umap_df$Day, "15+iso" = "15")
+cp_umap_df$Day <- factor(cp_umap_df$Day, levels = sort(as.numeric(paste(unique(cp_umap_df$Day)))))
+
+ggplot(cp_umap_df, aes(x, y)) +
+    geom_point(aes(color = Cell_Line,
+                   size = as.numeric(paste(Day)),
+                   shape = Batch),
+               alpha = 0.3) +
+    theme_bw() +
+    scale_size_continuous(name = "Day", range = c(0.5, 2.5)) +
+    scale_color_discrete(name = "Cell Line") +
+    scale_shape_manual(name = "Batch",
+                       values = c(19, 17),
+                       labels = c("batch_one" = "1", "batch_three" = "3")) +
+    xlab("UMAP (x)") +
+    ylab("UMAP (y)") +
+    theme(strip.text.x = element_text(size = 10),
+          strip.text.y = element_text(size = 7),
+          strip.background = element_rect(colour = "black",
+                                          fill = "#fdfff4"))
+
+output_file <- file.path("figures", "umap_batch1_batch3_day_line_batch.png")
+ggsave(output_file, height = 5, width = 6, dpi = 300)
