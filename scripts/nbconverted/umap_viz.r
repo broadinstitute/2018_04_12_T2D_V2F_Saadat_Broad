@@ -5,6 +5,13 @@ suppressPackageStartupMessages(library(umap))
 
 set.seed(12345)
 
+# Load labels
+file = file.path("data", "category_labels.csv")
+label_df = readr::read_csv(file, col_types=readr::cols())
+colnames(label_df) <- paste0("Metadata_", colnames(label_df))
+
+label_df
+
 file <- file.path("data", "batch1_batch3_combined_normalized_variable_selected.tsv")
 
 cp_cols <- readr::cols(
@@ -21,7 +28,15 @@ cp_cols <- readr::cols(
     Metadata_diff_day = readr::col_character()
 )
 
-df <- readr::read_tsv(file, col_types = cp_cols)
+df <- readr::read_tsv(file, col_types = cp_cols) %>%
+    dplyr::filter(Metadata_FFA == 0)
+
+recode_patient <- paste0("m", gsub("PAC_", "", df$Metadata_patient))
+df$Metadata_patient <- recode_patient
+df$Metadata_patient_merge <- recode_patient
+
+df <- label_df %>%
+    dplyr::inner_join(df, by = c("Metadata_IID" = "Metadata_patient_merge"), keep_all = TRUE)
 
 dim(df)
 head(df, 2)
@@ -46,14 +61,43 @@ cp_umap_df <- cp_umap_df %>%
 head(cp_umap_df, 2)
 
 cp_umap_df <- cp_umap_df %>%
-    dplyr::select(umap_x, umap_y, Metadata_Plate, Metadata_Well, Metadata_cell_line,
-                  Metadata_patient, Metadata_FFA, Metadata_diff_day, Metadata_Batch) %>%
-    dplyr::rename(x = umap_x, y = umap_y, Plate = Metadata_Plate,
-                  Well = Metadata_Well, Cell_Line = Metadata_cell_line,
-                  Patient = Metadata_patient, FFA = Metadata_FFA,
-                  Day = Metadata_diff_day, Batch = Metadata_Batch)
+    dplyr::select(umap_x,
+                  umap_y,
+                  Metadata_Plate,
+                  Metadata_Well,
+                  Metadata_cell_line,
+                  Metadata_patient,
+                  Metadata_diff_day,
+                  Metadata_Batch,
+                  Metadata_T2D_bin,
+                  Metadata_quantile_T2D,
+                  Metadata_percentile_T2D,
+                  Metadata_rank_T2D,
+                  `Metadata_percentile_HOMA-IR`,
+                  `Metadata_rank_HOMA-IR`,
+                  `Metadata_IID`,
+                  `Metadata_category`) %>%
+    dplyr::rename(x = umap_x,
+                  y = umap_y,
+                  Plate = Metadata_Plate,
+                  Well = Metadata_Well,
+                  Cell_Line = Metadata_cell_line,
+                  Patient = Metadata_patient,
+                  Day = Metadata_diff_day,
+                  Batch = Metadata_Batch,
+                  `T2D Bin` = Metadata_T2D_bin,
+                  `T2D Quantile` = Metadata_quantile_T2D,
+                  `T2D Percentile` = Metadata_percentile_T2D,
+                  `T2D Rank` = Metadata_rank_T2D,
+                  `HOMA-IR Percentile` = `Metadata_percentile_HOMA-IR`,
+                  `HOMA-IR Rank` = `Metadata_rank_HOMA-IR`,
+                  `IID` = `Metadata_IID`,
+                  `Category` = `Metadata_category`)
 
 head(cp_umap_df, 2)
+
+cp_umap_df$Day <- dplyr::recode(cp_umap_df$Day, "15+iso" = "15")
+cp_umap_df$Day <- factor(cp_umap_df$Day, levels = sort(as.numeric(paste(unique(cp_umap_df$Day)))))
 
 # Write umap output
 file <- file.path("umap_shiny", "data", "combined_batch1_batch3_umap_with_metadata.tsv")
@@ -72,6 +116,19 @@ patient_gg <- ggplot(cp_umap_df, aes(x, y)) +
 
 patient_gg
 
+cell_line_gg <- ggplot(cp_umap_df, aes(x, y)) +
+    geom_point(aes(fill = Cell_Line),
+               size = 1.2,
+               alpha = 0.5,
+               color = "black",
+               pch = 21) +
+    theme_bw() +
+    scale_fill_discrete(name = "Cell Line") +
+    xlab("UMAP (x)") +
+    ylab("UMAP (y)")
+
+cell_line_gg
+
 batch_gg <- ggplot(cp_umap_df, aes(x, y)) +
     geom_point(aes(fill = Batch),
                size = 1.2,
@@ -88,39 +145,56 @@ batch_gg <- ggplot(cp_umap_df, aes(x, y)) +
 batch_gg
 
 day_gg <- ggplot(cp_umap_df, aes(x, y)) +
-    geom_point(aes(fill = Day),
+    geom_point(aes(fill = as.numeric(paste(Day))),
                size = 1.2,
                alpha = 0.5,
                color = "black",
                pch = 21) +
     theme_bw() +
-    scale_fill_discrete(name = "Cell Line") +
+    scale_fill_viridis_c(name = "Diff Day") +
     xlab("UMAP (x)") +
     ylab("UMAP (y)")
  
 day_gg
 
-ffa_gg <- ggplot(cp_umap_df, aes(x, y)) +
-    geom_point(aes(fill = FFA),
+category_gg <- ggplot(cp_umap_df, aes(x, y)) +
+    geom_point(aes(fill = factor(Category)),
                size = 1.2,
                alpha = 0.5,
                color = "black",
                pch = 21) +
     theme_bw() +
-    scale_fill_discrete(name = "FFA") +
+    scale_fill_discrete(name = "Category") +
     xlab("UMAP (x)") +
     ylab("UMAP (y)")
  
-ffa_gg
+category_gg
+
+top_row <- (
+    cowplot::plot_grid(
+        batch_gg + theme(legend.position = "top"),
+        category_gg + theme(legend.position = "top"),
+        cell_line_gg + theme(legend.position = "top"),
+        labels = c("a", "b", "c"),
+        ncol = 3
+    )
+)
+
+bottom_row <- (
+    cowplot::plot_grid(
+        patient_gg + theme(legend.position = "bottom"),
+        day_gg + theme(legend.position = "bottom"),
+        labels = c("d", "e"),
+        ncol = 2
+    )
+)
+
 
 main_plot <- (
     cowplot::plot_grid(
-        batch_gg,
-        patient_gg,
-        day_gg,
-        ffa_gg,
-        labels = c("a", "b", "c", "d"),
-        ncol = 2,
+        top_row,
+        bottom_row,
+        ncol = 1,
         nrow = 2,
         align = "v"
     )
@@ -134,12 +208,9 @@ for(extension in c('.png', '.pdf')) {
     cowplot::save_plot(filename = sup_file,
                        plot = main_plot,
                        base_height = 130,
-                       base_width = 200,
+                       base_width = 240,
                        unit = "mm")
 }
-
-cp_umap_df$Day <- dplyr::recode(cp_umap_df$Day, "15+iso" = "15")
-cp_umap_df$Day <- factor(cp_umap_df$Day, levels = sort(as.numeric(paste(unique(cp_umap_df$Day)))))
 
 ggplot(cp_umap_df, aes(x, y)) +
     geom_point(aes(color = Cell_Line,
@@ -147,11 +218,13 @@ ggplot(cp_umap_df, aes(x, y)) +
                    shape = Batch),
                alpha = 0.3) +
     theme_bw() +
-    scale_size_continuous(name = "Day", range = c(0.5, 2.5)) +
+    scale_size_continuous(name = "Day",
+                          range = c(0.5, 2.5)) +
     scale_color_discrete(name = "Cell Line") +
     scale_shape_manual(name = "Batch",
                        values = c(19, 17),
-                       labels = c("batch_one" = "1", "batch_three" = "3")) +
+                       labels = c("batch_one" = "1",
+                                  "batch_three" = "3")) +
     xlab("UMAP (x)") +
     ylab("UMAP (y)") +
     theme(strip.text.x = element_text(size = 10),
