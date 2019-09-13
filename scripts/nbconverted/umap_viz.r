@@ -182,8 +182,8 @@ top_row <- (
 
 bottom_row <- (
     cowplot::plot_grid(
-        patient_gg + theme(legend.position = "bottom"),
-        day_gg + theme(legend.position = "bottom"),
+        patient_gg,
+        day_gg,
         labels = c("d", "e"),
         ncol = 2
     )
@@ -196,7 +196,7 @@ main_plot <- (
         bottom_row,
         ncol = 1,
         nrow = 2,
-        align = "v"
+        rel_heights = c(1, 0.8)
     )
 )
 
@@ -208,7 +208,7 @@ for(extension in c('.png', '.pdf')) {
     cowplot::save_plot(filename = sup_file,
                        plot = main_plot,
                        base_height = 130,
-                       base_width = 240,
+                       base_width = 155,
                        unit = "mm")
 }
 
