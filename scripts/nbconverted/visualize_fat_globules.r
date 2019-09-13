@@ -23,7 +23,7 @@ ggplot(all_results_df,
        aes(x=t_stat, y=neg_log_10_p)) +
     geom_point(aes(color = bodipy_color,
                    size = bodipy_color)) +
-    xlab("T Stat") +
+    xlab("T Statistic") +
     ylab("-log10 p value") +
     facet_grid(diff_day~FFA,
                labeller = labeller(diff_day = as_labeller(append_day),
@@ -47,6 +47,45 @@ ggplot(all_results_df,
 
 out_file <- file.path("figures", "volcano_fat_globule_viz.png")
 ggsave(out_file, height = 6, width = 7, dpi = 300)
+
+subset_results_df <- all_results_df %>%
+    dplyr::filter(diff_day == "14", FFA == 0)
+
+label_logic <- (
+    (
+        abs(subset_results_df$neg_log_10_p) > 2.5 &
+        subset_results_df$bodipy_color == "bodipy feature"
+    ) | 
+    subset_results_df$t_stat < -5 | 
+    subset_results_df$t_stat > 10
+    )
+
+ggplot(subset_results_df,
+       aes(x=t_stat, y=neg_log_10_p)) +
+    geom_point(aes(color = bodipy_color,
+                   size = bodipy_color)) +
+    xlab("T Statistic") +
+    ylab("-log10 p value") +
+    scale_size_manual(name = "", 
+                      values = c("bodipy feature" = 1, "not bodipy" = 0.02)) +
+    scale_color_discrete(name = "") +
+    theme_bw() +
+    geom_text_repel(data = subset(subset_results_df, label_logic),
+                    arrow = arrow(length = unit(0.01, "npc")),
+                    box.padding = 0.6,
+                    point.padding = 0.3,
+                    segment.size = 0.2,
+                    segment.alpha = 0.6,
+                    size = 1.2,
+                    fontface = "italic",
+                    aes(label = cp_feature,
+                        x = t_stat,
+                        y = neg_log_10_p)) +
+    theme(strip.background = element_rect(colour = "black",
+                                          fill = "#fdfff4"))
+
+out_file <- file.path("figures", "volcano_fat_globule_viz_day14_FFA0.png")
+ggsave(out_file, height = 3.5, width = 5, dpi = 300)
 
 label_logic <- (all_results_df$bodipy_color == "bodipy feature" &
                 all_results_df$FFA == 0 &
