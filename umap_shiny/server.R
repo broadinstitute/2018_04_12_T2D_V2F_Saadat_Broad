@@ -13,7 +13,9 @@ umap_cols <- readr::cols(
   Well = readr::col_character(),
   Cell_Line = readr::col_character(),
   Patient = readr::col_character(),
-  FFA = readr::col_character(),
+  IID = readr::col_character(),
+  `T2D Bin`	= readr::col_character(),
+  Category = readr::col_character(),
   Day = readr::col_character()
 )
 
@@ -34,12 +36,24 @@ shinyServer(function(input, output) {
     paste(input$Metadata_Shape)
   })
   
+  diff_day_select_ <- reactive({
+    paste(input$Differentation_Day)
+  })
+
   output$t2d_umap <- renderPlot(
     {
       metadata_color <- metadata_color_()
       metadata_shape <- metadata_shape_()
+      diff_day_subset <- diff_day_select_()
       
-      p <- ggplot(umap_df, aes(x, y)) + 
+      # Determine which data to plot
+      if (diff_day_subset == "All") {
+        plot_df <- umap_df
+      } else {
+        plot_df <- umap_df %>% dplyr::filter(Day == diff_day_subset)
+      }
+      
+      p <- ggplot(plot_df, aes(x, y)) + 
         xlab("UMAP (x)") +
         ylab("UMAP (y)") +
         theme_bw()
@@ -79,8 +93,16 @@ shinyServer(function(input, output) {
       # same as renderplot
       metadata_color <- metadata_color_()
       metadata_shape <- metadata_shape_()
+      diff_day_subset <- diff_day_select_()
       
-      p <- ggplot(umap_df, aes(x, y)) + 
+      # Determine which data to plot
+      if (diff_day_subset == "All") {
+        plot_df <- umap_df
+      } else {
+        plot_df <- umap_df %>% dplyr::filter(Day == diff_day_subset)
+      }
+      
+      p <- ggplot(plot_df, aes(x, y)) + 
         xlab("UMAP (x)") +
         ylab("UMAP (y)") +
         theme_bw()
