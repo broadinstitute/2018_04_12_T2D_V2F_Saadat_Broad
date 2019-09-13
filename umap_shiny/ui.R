@@ -1,6 +1,8 @@
 library(shiny)
 
-metadata_choices <- c("Plate", "Well", "Cell_Line", "Patient", "FFA", "Day", "Batch", "None")
+metadata_choices <- c("Plate", "Well", "Cell_Line", "Patient", "Day", "Batch",
+                      "T2D Bin", "T2D Quantile", "HOMA-IR Percentile",
+                      "HOMA-IR Rank", "IID", "Category", "None")
 
 # Define UI for application that draws a histogram
 shinyUI(
@@ -16,11 +18,15 @@ shinyUI(
         selectInput("Metadata_Color",
                     label = "Select Metadata to Color",
                     choices = metadata_choices,
-                    selected = "Metadata_Batch"),
+                    selected = "Cell_Line"),
         selectInput("Metadata_Shape",
                     label = "Select Metadata to Shape",
                     choices = metadata_choices,
                     selected = "None"),
+        selectInput("Differentation_Day",
+                    label = "Select Differentiation Day",
+                    choices = c("All", "0", "1", "2", "3", "7", "8", "10", "14", "15"),
+                    selected = "All"),
         radioButtons(inputId = "filetype",
                      label = "Select file type to download",
                      choices = list("png", "pdf")),

@@ -1,4 +1,4 @@
-﻿T2D_bin,quantile_T2D,percentile T2D,rank T2D,percentile HOMA-IR,rank HOMA-IR,IID,category
+﻿T2D_bin,quantile_T2D,percentile_T2D,rank_T2D,percentile_HOMA-IR,rank_HOMA-IR,IID,category
 0,NA,87.5,161,47.83,88,m164,1
 1,NA,81.52,150,80.43,148,m246,1
 1,NA,23.91,44,39.67,73,m252,0
