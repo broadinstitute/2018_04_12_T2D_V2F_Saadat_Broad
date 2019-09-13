@@ -108,7 +108,7 @@ bodipy_features
 # In[7]:
 
 
-group_df.Metadata_cell_line.value_counts()
+group_df.Metadata_patient.value_counts()
 
 
 # In[8]:

@@ -5,6 +5,6 @@ account: gregway
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 1152390
-bundleId: 2412325
+bundleId: 2412607
 url: https://gregway.shinyapps.io/umap_shiny/
-when: 1568401105.89265
+when: 1568406561.52661
