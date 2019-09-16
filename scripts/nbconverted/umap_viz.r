@@ -234,3 +234,37 @@ ggplot(cp_umap_df, aes(x, y)) +
 
 output_file <- file.path("figures", "umap_batch1_batch3_day_line_batch.png")
 ggsave(output_file, height = 5, width = 6, dpi = 300)
+
+cp_umap_df <- cp_umap_df %>%
+    dplyr::mutate(day_14_only = ifelse(cp_umap_df$Day == 14, "day_14", "not_day_14"))
+
+ggplot(cp_umap_df, aes(x, y)) +
+    geom_point(aes(color = paste(Category),
+                   alpha = day_14_only,
+                   size = as.numeric(paste(Day)),
+                   shape = Batch)) +
+    theme_bw() +
+    scale_size_continuous(name = "Day",
+                          range = c(0.5, 2.5)) +
+    scale_color_manual(name = "Category",
+                         values = c("0" = "#EF1665", 
+                                    "1" = "#0A4E8A"),
+                         labels = c("0" = "1",
+                                    "1" = "2")) +
+    scale_alpha_manual(name = "", 
+                       values = c(1, 0.1), 
+                       guide = 'none') +
+    scale_shape_manual(name = "Batch",
+                       values = c(19, 17),
+                       labels = c("batch_one" = "1",
+                                  "batch_three" = "3")) +
+    xlab("UMAP (x)") +
+    ylab("UMAP (y)") +
+    theme(strip.text.x = element_text(size = 10),
+          strip.text.y = element_text(size = 7),
+          strip.background = element_rect(colour = "black",
+                                          fill = "#fdfff4")) +
+    guides(color = guide_legend(order = 1))
+
+output_file <- file.path("figures", "umap_batch1_batch3_day_line_batch_day14_highlight.png")
+ggsave(output_file, height = 5, width = 6, dpi = 300)
