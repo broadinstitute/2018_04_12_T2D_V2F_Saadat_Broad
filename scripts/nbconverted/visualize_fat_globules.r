@@ -22,7 +22,8 @@ append_ffa <- function(string) paste0("FFA: ", string)
 ggplot(all_results_df,
        aes(x=t_stat, y=neg_log_10_p)) +
     geom_point(aes(color = bodipy_color,
-                   size = bodipy_color)) +
+                   size = bodipy_color),
+               alpha = 0.7) +
     xlab("T Statistic") +
     ylab("-log10 p value") +
     facet_grid(diff_day~FFA,
@@ -63,7 +64,8 @@ label_logic <- (
 ggplot(subset_results_df,
        aes(x=t_stat, y=neg_log_10_p)) +
     geom_point(aes(color = bodipy_color,
-                   size = bodipy_color)) +
+                   size = bodipy_color),
+               alpha = 0.6) +
     xlab("T Statistic") +
     ylab("-log10 p value") +
     scale_size_manual(name = "", 
@@ -116,7 +118,7 @@ ggplot(all_results_df,
                labeller = labeller(FFA = as_labeller(append_ffa))) +
     scale_color_discrete(name = "") +
     scale_alpha_manual(name = "",
-                       values = c("bodipy feature" = 1,
+                       values = c("bodipy feature" = 0.6,
                                   "not bodipy" = 0.1)) +
     scale_size_manual(name = "", 
                       values = c("bodipy feature" = 1,
