@@ -271,6 +271,13 @@ combined_df.head(2)
 # In[26]:
 
 
+# Recode ER features to BODIPY
+combined_df.columns = [x.replace("_ER", "_BODIPY") if "_ER" in x else x for x in combined_df.columns]
+
+
+# In[27]:
+
+
 # Output combined file
 file = os.path.join("data", "batch1_batch3_combined_normalized_variable_selected.tsv")
 combined_df.to_csv(file, index=False, sep='\t')
@@ -278,7 +285,7 @@ combined_df.to_csv(file, index=False, sep='\t')
 
 # ## Setup Data Specifically for Morpheus
 
-# In[27]:
+# In[28]:
 
 
 # Load labels
@@ -289,7 +296,7 @@ label_df.columns = ["Metadata_{}".format(x) for x in label_df.columns]
 label_df
 
 
-# In[28]:
+# In[29]:
 
 
 combined_df.loc[:, "Metadata_patient"] = ["m{}".format(x.strip("PAC_")) for x in combined_df.Metadata_patient]
@@ -301,13 +308,13 @@ print(combined_df.shape)
 combined_df.head()
 
 
-# In[29]:
+# In[30]:
 
 
 combined_df = combined_df.query("Metadata_FFA == 0")
 
 
-# In[30]:
+# In[31]:
 
 
 replicate_cols = [
@@ -327,7 +334,7 @@ combined_collapsed_df.head(2)
 
 # ## Use `write_gct.R` to output files for Morpheus
 
-# In[31]:
+# In[32]:
 
 
 get_ipython().run_cell_magic('R', '-i combined_df -i combined_collapsed_df', '\nlibrary(dplyr)\nlibrary(magrittr)\n\nfile <- file.path("..", "cytominer_scripts", "write_gct.R")\nsource(file)\n\noutput <- file.path("results", "morpheus",\n                    paste0("full_combined_batch1_batch3_morpheus.gct"))\noutput_collapsed <- file.path("results", "morpheus",\n                              paste0("collapsed_full_combined_batch1_batch3_morpheus.gct"))\n\nchannels <- NULL\ncreate_row_annotations <- TRUE\nfeature_regex <- "^Nuclei_|^Cells_|^Cytoplasm_"\n\n# Step 1: Output combined gct file\nwrite_gct(x = combined_df,\n          path = output,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)\n\n# Step 2: Output replicate collapsed gct file\nwrite_gct(x = combined_collapsed_df,\n          path = output_collapsed,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)')
