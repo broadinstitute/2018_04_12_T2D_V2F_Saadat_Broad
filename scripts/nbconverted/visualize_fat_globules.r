@@ -2,6 +2,10 @@ suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(ggrepel))
 suppressPackageStartupMessages(library(dplyr))
 
+source(file.path("scripts", "util.R"))
+
+extensions <- c(".png", ".pdf", ".svg")
+
 results_file <- file.path("results", "fat_globule_analysis_results.tsv")
 all_results_df <- readr::read_tsv(results_file, col_types=readr::cols())
 all_results_df <- all_results_df %>%
@@ -19,12 +23,12 @@ label_logic <- abs(all_results_df$neg_log_10_p) > 3 | all_results_df$t_stat < -5
 append_day <- function(string) paste("Day:", string)
 append_ffa <- function(string) paste0("FFA: ", string)
 
-ggplot(all_results_df,
+full_volcano_gg <- ggplot(all_results_df,
        aes(x=t_stat, y=neg_log_10_p)) +
     geom_point(aes(color = bodipy_color,
                    size = bodipy_color),
                alpha = 0.7) +
-    xlab("T Statistic") +
+    xlab("Fold Change (high GPS/low GPS)") +
     ylab("-log10 p value") +
     facet_grid(diff_day~FFA,
                labeller = labeller(diff_day = as_labeller(append_day),
@@ -46,8 +50,10 @@ ggplot(all_results_df,
     theme(strip.background = element_rect(colour = "black",
                                           fill = "#fdfff4"))
 
-out_file <- file.path("figures", "volcano_fat_globule_viz.png")
-ggsave(out_file, height = 6, width = 7, dpi = 300)
+full_volcano_gg
+
+base_file <- file.path("figures", "volcano_fat_globule_viz")
+save_figure(full_volcano_gg, base_file, extensions, height = 6, width = 7, dpi = 500)
 
 subset_results_df <- all_results_df %>%
     dplyr::filter(diff_day == "14", FFA == 0)
@@ -61,12 +67,12 @@ label_logic <- (
     subset_results_df$t_stat > 10
     )
 
-ggplot(subset_results_df,
+day14_gg <- ggplot(subset_results_df,
        aes(x=t_stat, y=neg_log_10_p)) +
     geom_point(aes(color = bodipy_color,
                    size = bodipy_color),
                alpha = 0.6) +
-    xlab("T Statistic") +
+    xlab("Fold Change (high GPS/low GPS)") +
     ylab("-log10 p value") +
     scale_size_manual(name = "", 
                       values = c("bodipy feature" = 1, "not bodipy" = 0.02)) +
@@ -86,8 +92,10 @@ ggplot(subset_results_df,
     theme(strip.background = element_rect(colour = "black",
                                           fill = "#fdfff4"))
 
-out_file <- file.path("figures", "volcano_fat_globule_viz_day14_FFA0.png")
-ggsave(out_file, height = 3.5, width = 5, dpi = 300)
+day14_gg
+
+base_file <- file.path("figures", "volcano_fat_globule_viz_day14_FFA0")
+save_figure(day14_gg, base_file, extensions, height = 3.5, width = 5, dpi = 500)
 
 label_logic <- (all_results_df$bodipy_color == "bodipy feature" &
                 all_results_df$FFA == 0 &
@@ -106,13 +114,13 @@ label_logic <- (all_results_df$bodipy_color == "bodipy feature" &
      all_results_df$t_stat < -6 &
                 all_results_df$diff_day == 14)
 
-ggplot(all_results_df,
+traj_gg <- ggplot(all_results_df,
        aes(x = diff_day, y = t_stat, group = cp_feature)) +
     geom_point(aes(color = bodipy_color,
                    alpha = bodipy_color,
                    size = bodipy_color)) +
     geom_line(aes(alpha = bodipy_color)) +
-    ylab("T Stat") +
+    ylab("Fold Change (high GPS/low GPS)") +
     xlab("Differentiation Day") +
     facet_wrap(~FFA,
                labeller = labeller(FFA = as_labeller(append_ffa))) +
@@ -138,5 +146,7 @@ ggplot(all_results_df,
                         x = diff_day,
                         y = t_stat))
 
-out_file <- file.path("figures", "trajectory_fat_globule_viz.png")
-ggsave(out_file, height = 5, width = 7, dpi = 300)
+traj_gg
+
+base_file <- file.path("figures", "trajectory_fat_globule_viz")
+save_figure(traj_gg, base_file, extensions, height = 5, width = 7, dpi = 500)
