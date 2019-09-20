@@ -3,6 +3,8 @@ suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(cowplot))
 suppressPackageStartupMessages(library(umap))
 
+source(file.path("scripts", "util.R"))
+
 set.seed(12345)
 
 # Load labels
@@ -48,60 +50,63 @@ cp_df <- df %>%
     dplyr::select(-dplyr::starts_with("Metadata_"))
 
 # Apply UMAP
-cp_umap <- umap(as.matrix(cp_df))
-cp_umap_df <- cp_umap$layout %>%
-    dplyr::as_tibble()
+umap_file <- file.path("umap_shiny", "data", "combined_batch1_batch3_umap_with_metadata.tsv")
 
-colnames(cp_umap_df) <- c("umap_x", "umap_y")
+if (!file.exists(umap_file)) {
+    cp_umap <- umap(as.matrix(cp_df))
+    cp_umap_df <- cp_umap$layout %>%
+        dplyr::as_tibble()
 
-# Merge with metadata
-cp_umap_df <- cp_umap_df %>%
-    dplyr::bind_cols(metadata_df)
+    colnames(cp_umap_df) <- c("umap_x", "umap_y")
+
+    # Merge with metadata
+    cp_umap_df <- cp_umap_df %>%
+        dplyr::bind_cols(metadata_df)
+
+    # Process Columns
+    cp_umap_df <- cp_umap_df %>%
+        dplyr::select(umap_x,
+                      umap_y,
+                      Metadata_Plate,
+                      Metadata_Well,
+                      Metadata_cell_line,
+                      Metadata_patient,
+                      Metadata_diff_day,
+                      Metadata_Batch,
+                      Metadata_T2D_bin,
+                      Metadata_quantile_T2D,
+                      Metadata_percentile_T2D,
+                      Metadata_rank_T2D,
+                      `Metadata_percentile_HOMA-IR`,
+                      `Metadata_rank_HOMA-IR`,
+                      `Metadata_IID`,
+                      `Metadata_category`) %>%
+        dplyr::rename(x = umap_x,
+                      y = umap_y,
+                      Plate = Metadata_Plate,
+                      Well = Metadata_Well,
+                      Cell_Line = Metadata_cell_line,
+                      Patient = Metadata_patient,
+                      Day = Metadata_diff_day,
+                      Batch = Metadata_Batch,
+                      `T2D Bin` = Metadata_T2D_bin,
+                      `T2D Quantile` = Metadata_quantile_T2D,
+                      `T2D Percentile` = Metadata_percentile_T2D,
+                      `T2D Rank` = Metadata_rank_T2D,
+                      `HOMA-IR Percentile` = `Metadata_percentile_HOMA-IR`,
+                      `HOMA-IR Rank` = `Metadata_rank_HOMA-IR`,
+                      `IID` = `Metadata_IID`,
+                      `Category` = `Metadata_category`)
+    
+    cp_umap_df$Day <- dplyr::recode(cp_umap_df$Day, "15+iso" = "15")
+    cp_umap_df$Day <- factor(cp_umap_df$Day, levels = sort(as.numeric(paste(unique(cp_umap_df$Day)))))
+    
+    readr::write_tsv(cp_umap_df, umap_file)
+} else {
+    cp_umap_df <- readr::read_tsv(umap_file, col_types = readr::cols())
+}
 
 head(cp_umap_df, 2)
-
-cp_umap_df <- cp_umap_df %>%
-    dplyr::select(umap_x,
-                  umap_y,
-                  Metadata_Plate,
-                  Metadata_Well,
-                  Metadata_cell_line,
-                  Metadata_patient,
-                  Metadata_diff_day,
-                  Metadata_Batch,
-                  Metadata_T2D_bin,
-                  Metadata_quantile_T2D,
-                  Metadata_percentile_T2D,
-                  Metadata_rank_T2D,
-                  `Metadata_percentile_HOMA-IR`,
-                  `Metadata_rank_HOMA-IR`,
-                  `Metadata_IID`,
-                  `Metadata_category`) %>%
-    dplyr::rename(x = umap_x,
-                  y = umap_y,
-                  Plate = Metadata_Plate,
-                  Well = Metadata_Well,
-                  Cell_Line = Metadata_cell_line,
-                  Patient = Metadata_patient,
-                  Day = Metadata_diff_day,
-                  Batch = Metadata_Batch,
-                  `T2D Bin` = Metadata_T2D_bin,
-                  `T2D Quantile` = Metadata_quantile_T2D,
-                  `T2D Percentile` = Metadata_percentile_T2D,
-                  `T2D Rank` = Metadata_rank_T2D,
-                  `HOMA-IR Percentile` = `Metadata_percentile_HOMA-IR`,
-                  `HOMA-IR Rank` = `Metadata_rank_HOMA-IR`,
-                  `IID` = `Metadata_IID`,
-                  `Category` = `Metadata_category`)
-
-head(cp_umap_df, 2)
-
-cp_umap_df$Day <- dplyr::recode(cp_umap_df$Day, "15+iso" = "15")
-cp_umap_df$Day <- factor(cp_umap_df$Day, levels = sort(as.numeric(paste(unique(cp_umap_df$Day)))))
-
-# Write umap output
-file <- file.path("umap_shiny", "data", "combined_batch1_batch3_umap_with_metadata.tsv")
-readr::write_tsv(cp_umap_df, file)
 
 patient_gg <- ggplot(cp_umap_df, aes(x, y)) +
     geom_point(aes(fill = Patient),
@@ -212,7 +217,7 @@ for(extension in c('.png', '.pdf')) {
                        unit = "mm")
 }
 
-ggplot(cp_umap_df, aes(x, y)) +
+umap_full_gg <- ggplot(cp_umap_df, aes(x, y)) +
     geom_point(aes(color = Cell_Line,
                    size = as.numeric(paste(Day)),
                    shape = Batch),
@@ -232,13 +237,26 @@ ggplot(cp_umap_df, aes(x, y)) +
           strip.background = element_rect(colour = "black",
                                           fill = "#fdfff4"))
 
-output_file <- file.path("figures", "umap_batch1_batch3_day_line_batch.png")
-ggsave(output_file, height = 5, width = 6, dpi = 300)
+umap_full_gg
+
+extensions <- c(".png", ".pdf", ".svg")
+output_filebase <- file.path("figures", "umap_batch1_batch3_day_line_batch")
+
+save_figure(umap_full_gg, output_filebase, extensions, height = 5, width = 6, dpi = 500)
 
 cp_umap_df <- cp_umap_df %>%
-    dplyr::mutate(day_14_only = ifelse(cp_umap_df$Day == 14, "day_14", "not_day_14"))
+    dplyr::mutate(
+        day_14_only = ifelse(
+            (
+                cp_umap_df$Day == 14
+            ) & (
+                cp_umap_df$Cell_Line == "vc"
+            ),
+            "day_14", "not_day_14"
+        )
+    )
 
-ggplot(cp_umap_df, aes(x, y)) +
+umap_day14_vc_gg <- ggplot(cp_umap_df, aes(x, y)) +
     geom_point(aes(color = paste(Category),
                    alpha = day_14_only,
                    size = as.numeric(paste(Day)),
@@ -266,5 +284,9 @@ ggplot(cp_umap_df, aes(x, y)) +
                                           fill = "#fdfff4")) +
     guides(color = guide_legend(order = 1))
 
-output_file <- file.path("figures", "umap_batch1_batch3_day_line_batch_day14_highlight.png")
-ggsave(output_file, height = 5, width = 6, dpi = 300)
+umap_day14_vc_gg
+
+extensions <- c(".png", ".pdf", ".svg")
+output_filebase <- file.path("figures", "umap_batch1_batch3_day_line_batch_day14_highlight")
+
+save_figure(umap_day14_vc_gg, output_filebase, extensions, height = 5, width = 6, dpi = 500)
