@@ -219,17 +219,12 @@ for(extension in c('.png', '.pdf')) {
 
 umap_full_gg <- ggplot(cp_umap_df, aes(x, y)) +
     geom_point(aes(color = Cell_Line,
-                   size = as.numeric(paste(Day)),
-                   shape = Batch),
+                   size = as.numeric(paste(Day))),
                alpha = 0.3) +
     theme_bw() +
     scale_size_continuous(name = "Day",
                           range = c(0.5, 2.5)) +
     scale_color_discrete(name = "Cell Line") +
-    scale_shape_manual(name = "Batch",
-                       values = c(19, 17),
-                       labels = c("batch_one" = "1",
-                                  "batch_three" = "3")) +
     xlab("UMAP (x)") +
     ylab("UMAP (y)") +
     theme(strip.text.x = element_text(size = 10),
@@ -259,8 +254,7 @@ cp_umap_df <- cp_umap_df %>%
 umap_day14_vc_gg <- ggplot(cp_umap_df, aes(x, y)) +
     geom_point(aes(color = paste(Category),
                    alpha = day_14_only,
-                   size = as.numeric(paste(Day)),
-                   shape = Batch)) +
+                   size = as.numeric(paste(Day)))) +
     theme_bw() +
     scale_size_continuous(name = "Day",
                           range = c(0.5, 2.5)) +
@@ -272,10 +266,6 @@ umap_day14_vc_gg <- ggplot(cp_umap_df, aes(x, y)) +
     scale_alpha_manual(name = "", 
                        values = c(1, 0.1), 
                        guide = 'none') +
-    scale_shape_manual(name = "Batch",
-                       values = c(19, 17),
-                       labels = c("batch_one" = "1",
-                                  "batch_three" = "3")) +
     xlab("UMAP (x)") +
     ylab("UMAP (y)") +
     theme(strip.text.x = element_text(size = 10),
