@@ -29,6 +29,7 @@ dependencies:
 - conda-forge::r-ggrepel=0.8.0
 - conda-forge::r-ggridges=0.5.1
 - conda-forge::r-umap=0.2.2.0
+- conda-forge::r-svglite=1.2.2
 - conda-forge::r-irkernel=1.0.1
 - conda-forge::r-optparse=1.6.0
 - conda-forge::r-platetools=0.1.2
