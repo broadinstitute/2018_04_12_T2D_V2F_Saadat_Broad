@@ -239,6 +239,8 @@ output_filebase <- file.path("figures", "umap_batch1_batch3_day_line_batch")
 
 save_figure(umap_full_gg, output_filebase, extensions, height = 5, width = 6, dpi = 500)
 
+table(cp_umap_df$Day)
+
 cp_umap_df <- cp_umap_df %>%
     dplyr::mutate(
         day_14_only = ifelse(
@@ -248,6 +250,14 @@ cp_umap_df <- cp_umap_df %>%
                 cp_umap_df$Cell_Line == "vc"
             ),
             "day_14", "not_day_14"
+        ),
+        late_days_only = ifelse(
+            (
+                cp_umap_df$Day %in% c(10, 14, 15)
+            ) & (
+                cp_umap_df$Cell_Line == "vc"
+            ),
+            "late_day", "early_day"
         )
     )
 
@@ -274,9 +284,40 @@ umap_day14_vc_gg <- ggplot(cp_umap_df, aes(x, y)) +
                                           fill = "#fdfff4")) +
     guides(color = guide_legend(order = 1))
 
-umap_day14_vc_gg
-
 extensions <- c(".png", ".pdf", ".svg")
 output_filebase <- file.path("figures", "umap_batch1_batch3_day_line_batch_day14_highlight")
 
 save_figure(umap_day14_vc_gg, output_filebase, extensions, height = 5, width = 6, dpi = 500)
+
+umap_day14_vc_gg
+
+umap_lateday_vc_gg <- ggplot(cp_umap_df, aes(x, y)) +
+    geom_point(aes(color = paste(Category),
+                   alpha = late_days_only,
+                   size = as.numeric(paste(Day)))) +
+    theme_bw() +
+    scale_size_continuous(name = "Day",
+                          range = c(0.5, 2.5)) +
+    scale_color_manual(name = "Category",
+                         values = c("0" = "#EF1665", 
+                                    "1" = "#0A4E8A"),
+                         labels = c("0" = "1",
+                                    "1" = "2")) +
+    scale_alpha_manual(name = "", 
+                       values = c(0.1, 1), 
+                       guide = 'none') +
+    xlab("UMAP (x)") +
+    ylab("UMAP (y)") +
+    theme(strip.text.x = element_text(size = 10),
+          strip.text.y = element_text(size = 7),
+          strip.background = element_rect(colour = "black",
+                                          fill = "#fdfff4")) +
+    guides(color = guide_legend(order = 1))
+
+extensions <- c(".png", ".pdf", ".svg")
+output_filebase <- file.path("figures", "umap_batch1_batch3_day_line_batch_lateday_highlight")
+
+save_figure(umap_lateday_vc_gg, output_filebase, extensions, height = 5, width = 6, dpi = 500)
+
+
+umap_lateday_vc_gg
