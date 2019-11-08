@@ -111,42 +111,9 @@ cp_non15_collapsed_df = cp_non15_df.groupby(replicate_cols).mean().reset_index()
 get_ipython().run_cell_magic('R', '-i cp_df -i batch_id -i backend_dir -i cp_15_df -i cp_non15_df -i cp_15_collapsed_df -i cp_non15_collapsed_df', '\nlibrary(dplyr)\nlibrary(magrittr)\n\nfile <- file.path("..", "cytominer_scripts", "write_gct.R")\nsource(file)\n\noutput <- file.path("results", "morpheus",\n                    paste0("full_", batch_id, "_morpheus.gct"))\nchannels <- NULL\ncreate_row_annotations <- TRUE\nfeature_regex <- "^Nuclei_|^Cells_|^Cytoplasm_"\n\n# Step 1: Output combined gct file\nwrite_gct(x = cp_df,\n          path = output,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)\n\n# Step 2: Output specific plate combinations\n# (replicate collapsed and non replicate collapsed)\noutput <- file.path("results", "morpheus",\n                    paste0("full_", batch_id, "_morpheus_day15.gct"))\n\nwrite_gct(x = cp_15_df,\n          path = output,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)\n\noutput <- file.path("results", "morpheus",\n                    paste0("full_", batch_id, "_morpheus_nonday15.gct"))\n\nwrite_gct(x = cp_non15_df,\n          path = output,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)\n\noutput <- file.path("results", "morpheus",\n                    paste0("full_", batch_id, "_morpheus_day15_collapsed.gct"))\n\nwrite_gct(x = cp_15_collapsed_df,\n          path = output,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)\n\noutput <- file.path("results", "morpheus",\n                    paste0("full_", batch_id, "_morpheus_nonday15_collapsed.gct"))\n\nwrite_gct(x = cp_non15_collapsed_df,\n          path = output,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)\n\n# Step 3: Also generate and write individual gct files\nplate_cols <- readr::cols(\n    .default = readr::col_double(),\n    Metadata_Plate = readr::col_character(),\n    Metadata_Well = readr::col_character(),\n    Metadata_Assay_Plate_Barcode = readr::col_character(),\n    Metadata_Plate_Map_Name = readr::col_character(),\n    Metadata_well_position = readr::col_character(),\n    Metadata_cell_line = readr::col_character(),\n    Metadata_patient = readr::col_character(),\n    Metadata_FFA = readr::col_character(),\n    Metadata_diff_day = readr::col_character()\n)\n\nall_plate_dirs <- list.files(backend_dir, full.names = TRUE)\nfor (plate_dir in all_plate_dirs) {\n    plate_file <- list.files(plate_dir, full.names = FALSE, pattern = "normalized_variable_selected")[1]\n    full_plate_file <- file.path(plate_dir, plate_file)\n\n    df <- readr::read_csv(full_plate_file, col_types = plate_cols)\n    \n    output_file <- file.path("results", "morpheus",\n                             paste0(tools::file_path_sans_ext(plate_file),\n                                    "_", batch_id, "_morpheus.gct"))\n    write_gct(x = df,\n              path = output_file,\n              channels = channels,\n              create_row_annotations = create_row_annotations,\n              feature_regex = feature_regex)\n}')
 
 
-# ## Batch 2
-
-# In[11]:
-
-
-batch_id = "2019_06_11_Batch2"
-file = os.path.join("data", "merged_profiles_{}.tsv.gz".format(batch_id))
-
-cp_df = pd.read_csv(file, sep='\t')
-print(cp_df.shape)
-cp_df.head(3)
-
-
-# In[12]:
-
-
-# Merge replicate cols
-replicate_cols = ["Metadata_Plate",
-                  "Metadata_cell_line",
-                  "Metadata_condition_O2",
-                  "Metadata_treatment"]
-
-cp_collapse_df = cp_df.groupby(replicate_cols).mean().reset_index()
-
-
-# ## Use `write_gct.R` to build the Morpheus Input
-
-# In[13]:
-
-
-get_ipython().run_cell_magic('R', '-i cp_df -i batch_id -i cp_collapse_df', '\nlibrary(dplyr)\nlibrary(magrittr)\n\nfile <- file.path("..", "cytominer_scripts", "write_gct.R")\nsource(file)\n\noutput <- file.path("results", "morpheus",\n                    paste0("full_", batch_id, "_morpheus.gct"))\noutput_collapsed <- file.path("results", "morpheus",\n                              paste0("collapsed_", batch_id, "_morpheus.gct"))\n\nchannels <- NULL\ncreate_row_annotations <- TRUE\nfeature_regex <- "^Nuclei_|^Cells_|^Cytoplasm_"\n\n# Step 1: Output combined gct file\nwrite_gct(x = cp_df,\n          path = output,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)\n\n# Step 2: Output replicate collapsed gct file\nwrite_gct(x = cp_collapse_df,\n          path = output_collapsed,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)')
-
-
 # ## Batch 3
 
-# In[14]:
+# In[11]:
 
 
 batch_id = "2019_08_06_Batch3"
@@ -155,7 +122,7 @@ backend_dir = os.path.join("..", "..", "backend", batch_id)
 plate_dirs = [os.path.join(backend_dir, x) for x in os.listdir(backend_dir)]
 
 
-# In[15]:
+# In[12]:
 
 
 cp_df = load_files(plate_dirs, file_grep="normalized_variable_selected.csv")
@@ -166,14 +133,14 @@ print(cp_df.shape)
 cp_df.head()
 
 
-# In[16]:
+# In[13]:
 
 
 # Extract out the cell painting features selected in this batch
 batch_3_features = [x for x in cp_df.columns if not x.startswith("Metadata_")]
 
 
-# In[17]:
+# In[14]:
 
 
 # Output combined file
@@ -181,7 +148,7 @@ file = os.path.join("data", "{}_combined_normalized_variable_selected.tsv".forma
 cp_df.to_csv(file, index=False, sep='\t')
 
 
-# In[18]:
+# In[15]:
 
 
 replicate_cols = ["Metadata_Plate",
@@ -195,7 +162,7 @@ cp_collapsed_df = cp_df.groupby(replicate_cols).mean().reset_index()
 
 # ## Use `write_gct.R` to build the Moxrpheus Input
 
-# In[19]:
+# In[16]:
 
 
 get_ipython().run_cell_magic('R', '-i cp_df -i batch_id -i cp_df -i cp_collapsed_df', '\nlibrary(dplyr)\nlibrary(magrittr)\n\nfile <- file.path("..", "cytominer_scripts", "write_gct.R")\nsource(file)\n\noutput <- file.path("results", "morpheus",\n                    paste0("full_", batch_id, "_morpheus.gct"))\noutput_collapsed <- file.path("results", "morpheus",\n                              paste0("collapsed_", batch_id, "_morpheus.gct"))\n\nchannels <- NULL\ncreate_row_annotations <- TRUE\nfeature_regex <- "^Nuclei_|^Cells_|^Cytoplasm_"\n\n# Step 1: Output combined gct file\nwrite_gct(x = cp_df,\n          path = output,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)\n\n# Step 2: Output replicate collapsed gct file\nwrite_gct(x = cp_collapsed_df,\n          path = output_collapsed,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)')
@@ -203,14 +170,14 @@ get_ipython().run_cell_magic('R', '-i cp_df -i batch_id -i cp_df -i cp_collapsed
 
 # ## Combine Batch 1 and Batch 3 Profiles
 
-# In[20]:
+# In[17]:
 
 
 combined_batch_features = list(set(batch_1_features + batch_3_features))
 len(combined_batch_features)
 
 
-# In[21]:
+# In[18]:
 
 
 batch_id = "2019_04_16_Batch1"
@@ -219,7 +186,7 @@ backend_dir = os.path.join("..", "..", "backend", batch_id)
 plate_dirs = [os.path.join(backend_dir, x) for x in os.listdir(backend_dir)]
 
 
-# In[22]:
+# In[19]:
 
 
 # Build full cell painting dataset
@@ -234,7 +201,7 @@ print(batch_one_df.shape)
 batch_one_df.head(2)
 
 
-# In[23]:
+# In[20]:
 
 
 batch_id = "2019_08_06_Batch3"
@@ -243,7 +210,7 @@ backend_dir = os.path.join("..", "..", "backend", batch_id)
 plate_dirs = [os.path.join(backend_dir, x) for x in os.listdir(backend_dir)]
 
 
-# In[24]:
+# In[21]:
 
 
 batch_three_df = load_files(plate_dirs, file_grep="normalized.csv").assign(Metadata_Batch="batch_three")
@@ -258,7 +225,7 @@ print(batch_three_df.shape)
 batch_three_df.head(2)
 
 
-# In[25]:
+# In[22]:
 
 
 combined_df = pd.concat([batch_one_df, batch_three_df], axis="rows").dropna(axis="columns")
@@ -268,14 +235,14 @@ print(combined_df.shape)
 combined_df.head(2)
 
 
-# In[26]:
+# In[23]:
 
 
 # Recode ER features to BODIPY
 combined_df.columns = [x.replace("_ER", "_BODIPY") if "_ER" in x else x for x in combined_df.columns]
 
 
-# In[27]:
+# In[24]:
 
 
 # Output combined file
@@ -285,7 +252,7 @@ combined_df.to_csv(file, index=False, sep='\t')
 
 # ## Setup Data Specifically for Morpheus
 
-# In[28]:
+# In[25]:
 
 
 # Load labels
@@ -296,7 +263,7 @@ label_df.columns = ["Metadata_{}".format(x) for x in label_df.columns]
 label_df
 
 
-# In[29]:
+# In[26]:
 
 
 combined_df.loc[:, "Metadata_patient"] = ["m{}".format(x.strip("PAC_")) for x in combined_df.Metadata_patient]
@@ -308,13 +275,13 @@ print(combined_df.shape)
 combined_df.head()
 
 
-# In[30]:
+# In[27]:
 
 
 combined_df = combined_df.query("Metadata_FFA == 0")
 
 
-# In[31]:
+# In[28]:
 
 
 replicate_cols = [
@@ -334,7 +301,7 @@ combined_collapsed_df.head(2)
 
 # ## Use `write_gct.R` to output files for Morpheus
 
-# In[32]:
+# In[29]:
 
 
 get_ipython().run_cell_magic('R', '-i combined_df -i combined_collapsed_df', '\nlibrary(dplyr)\nlibrary(magrittr)\n\nfile <- file.path("..", "cytominer_scripts", "write_gct.R")\nsource(file)\n\noutput <- file.path("results", "morpheus",\n                    paste0("full_combined_batch1_batch3_morpheus.gct"))\noutput_collapsed <- file.path("results", "morpheus",\n                              paste0("collapsed_full_combined_batch1_batch3_morpheus.gct"))\n\nchannels <- NULL\ncreate_row_annotations <- TRUE\nfeature_regex <- "^Nuclei_|^Cells_|^Cytoplasm_"\n\n# Step 1: Output combined gct file\nwrite_gct(x = combined_df,\n          path = output,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)\n\n# Step 2: Output replicate collapsed gct file\nwrite_gct(x = combined_collapsed_df,\n          path = output_collapsed,\n          channels = channels,\n          create_row_annotations = create_row_annotations,\n          feature_regex = feature_regex)')
