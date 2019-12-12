@@ -3,7 +3,7 @@
 Below is a running list of all cell painting batches, with links to download single cell profiles.
 
 | Batch | Plate | URL |
-| :---: | :---: | :-: |
+| :---: | :---: | :- |
 | 2019_04_16_Batch1 | BR00101075 | https://imaging-platform.s3.amazonaws.com/projects/2018_04_12_T2D_V2F_Saadat_Broad/workspace/backend/2019_04_16_Batch1/BR00101075/BR00101075.sqlite |
 | 2019_04_16_Batch1 | BR00101076 | https://imaging-platform.s3.amazonaws.com/projects/2018_04_12_T2D_V2F_Saadat_Broad/workspace/backend/2019_04_16_Batch1/BR00101076/BR00101076.sqlite |
 | 2019_04_16_Batch1 | BR00101077 | https://imaging-platform.s3.amazonaws.com/projects/2018_04_12_T2D_V2F_Saadat_Broad/workspace/backend/2019_04_16_Batch1/BR00101077/BR00101077.sqlite |
